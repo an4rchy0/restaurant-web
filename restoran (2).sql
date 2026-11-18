@@ -1,0 +1,306 @@
+-- phpMyAdmin SQL Dump
+-- version 5.1.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Waktu pembuatan: 25 Feb 2022 pada 15.40
+-- Versi server: 10.4.21-MariaDB
+-- Versi PHP: 8.0.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `restoran`
+--
+
+DELIMITER $$
+--
+-- Prosedur
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `addMenu` (IN `id_menu` VARCHAR(9), IN `nama_menu` VARCHAR(15), IN `harga` INT, IN `stok` INT)  BEGIN
+	INSERT INTO menu (idmenu,NamaMenu, Harga, stok) VALUES (id_menu, nama_menu, harga, stok);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `addPelangan` (IN `nama_pelanggan` VARCHAR(30), IN `jenkel` ENUM('Laki-Laki','Perempuan'), IN `nohp` VARCHAR(15), IN `alamat` VARCHAR(100), IN `meja` INT, IN `id_pelanggan` VARCHAR(9))  NO SQL
+BEGIN
+	INSERT INTO pelanggan (Namapelanggan,JenisKelamin,Nohp,Alamat,meja,idpelanggan) VALUES (nama_pelanggan, jenkel, nohp, alamat, meja, id_pelanggan);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `addPelanggan` (IN `id_pelanggan` VARCHAR(9), IN `nama_pelanggan` VARCHAR(50), IN `jenkel` ENUM('Laki-Laki','Perempuan'), IN `nohp` VARCHAR(15), IN `alamat` VARCHAR(100), IN `meja` INT, IN `waktu` TIME)  BEGIN
+	INSERT INTO pelanggan (idpelanggan, Namapelanggan, Jeniskelamin, Nohp, Alamat, meja, waktudatang) VALUES (id_pelanggan, nama_pelanggan, jenkel, nohp, alamat, meja, waktu);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `addPesanan` (IN `id_pesanan` VARCHAR(9), IN `id_menu` VARCHAR(9), IN `id_pelanggan` VARCHAR(9), IN `jumlah` INT, IN `id_user` VARCHAR(9))  BEGIN
+	INSERT INTO pesanan (idpesanan, idmenu, idpelanggan, Jumlah, iduser) VALUES (id_pesanan, id_menu, id_pelanggan, jumlah, id_user);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `addTransaksi` (IN `id_transaksi` VARCHAR(9), IN `id_pesanan` VARCHAR(9), IN `total` INT(11), IN `bayar` INT(11))  BEGIN
+	INSERT INTO transaksi (idtransaksi, idpesanan, Total,  Bayar) VALUES (id_transaksi, id_pesanan, total, bayar);
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `deleteMenu` (`id_menu` VARCHAR(9))  BEGIN
+	DELETE FROM menu WHERE idmenu = id_menu;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `deletePelanggan` (`id_pelanggan` VARCHAR(9))  BEGIN
+	DELETE FROM pelanggan WHERE idpelanggan = id_pelanggan;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `deletePesanan` (`id_pesanan` VARCHAR(9))  BEGIN
+	DELETE FROM pesanan WHERE idpesanan = id_pesanan;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getMenu` (`id_menu` VARCHAR(9))  BEGIN
+	SELECT * FROM menu WHERE idmenu = id_menu;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrder` ()  BEGIN
+	SELECT ps.idpesanan, m.NamaMenu, p.Namapelanggan, m.Harga, ps.Jumlah, u.Namauser
+    FROM pesanan ps, menu m, pelanggan p, user u
+    WHERE ps.idmenu = m.idmenu
+    AND ps.idpelanggan = p.idpelanggan
+    AND ps.iduser = u.iduser;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getPelanggan` ()  BEGIN
+	SELECT * FROM pelanggan;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getReport` ()  BEGIN
+	SELECT t.idtransaksi, p.Namapelanggan, t.Bayar, ps.tgl_bayar
+    FROM transaksi t, pelanggan p, pesanan ps
+                    WHERE t.idpesanan = ps.idpesanan
+                    AND ps.idpelanggan = p.idpelanggan;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getTransaksi` ()  BEGIN
+	SELECT ps.idpesanan ,p.namapelanggan,p.meja, p.waktudatang, m.namamenu, m.harga, ps.status, m.Harga * ps.Jumlah as totalHarga FROM pelanggan p, user u, menu m, pesanan ps, transaksi t WHERE t.idpesanan = ps.idpesanan and ps.idmenu = m.idmenu and ps.idpelanggan = p.idpelanggan and ps.iduser = u.iduser;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `selectMenu` ()  BEGIN
+	SELECT * FROM menu;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `selectOrder` (IN `id_orderan` VARCHAR(9))  BEGIN
+	SELECT ps.idpesanan, m.NamaMenu, m.idmenu , p.idpelanggan , p.Namapelanggan, m.Harga, ps.Jumlah, u.Namauser
+    FROM pesanan ps, menu m, pelanggan p, user u
+    WHERE ps.idmenu = m.idmenu
+    AND ps.idpelanggan = p.idpelanggan
+    AND ps.iduser = u.iduser
+    AND ps.idpesanan = id_orderan;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `selectPelanggan` (IN `id_pelanggan` VARCHAR(9))  BEGIN
+	SELECT * FROM pelanggan WHERE idpelanggan = id_pelanggan;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `selectTransaksi` ()  BEGIN
+	SELECT ps.idpesanan, p.Namapelanggan
+    FROM pelanggan p, pesanan ps 
+    WHERE ps.idpelanggan = p.idpelanggan;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateMenu` (IN `id_menu` VARCHAR(9), IN `nama_menu` VARCHAR(15), IN `harga` INT, IN `stok` INT)  BEGIN
+	UPDATE menu SET NamaMenu = nama_menu, Harga = harga, stok = stok WHERE idmenu = id_menu;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePelanggan` (`id_pelanggan` VARCHAR(9), `nama_pelanggan` VARCHAR(50), `jeniskelamin` ENUM('Laki-Laki','Perempuan'), `no_hp` VARCHAR(15), `alamat` VARCHAR(100), `meja` INT)  BEGIN
+	UPDATE pelanggan SET Namapelanggan = nama_pelanggan, Jeniskelamin = jeniskelamin, Nohp = nohp, Alamat = alamat, meja = meja WHERE idpelanggan = id_pelanggan;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updatePesanan` (`id_pesanan` VARCHAR(9), `id_menu` VARCHAR(9), `id_pelanggan` VARCHAR(9), `jumlah` INT)  BEGIN
+	UPDATE pesanan SET idmenu = id_menu, idpelanggan = id_pelanggan, Jumlah = jumlah
+    WHERE idpesanan = id_pesanan;
+END$$
+
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `menu`
+--
+
+CREATE TABLE `menu` (
+  `idmenu` varchar(9) NOT NULL,
+  `NamaMenu` varchar(15) NOT NULL,
+  `Harga` int(11) NOT NULL,
+  `stok` int(5) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `menu`
+--
+
+INSERT INTO `menu` (`idmenu`, `NamaMenu`, `Harga`, `stok`) VALUES
+('M001', 'Barbeque Lemon', 65000, 30);
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `pelanggan`
+--
+
+CREATE TABLE `pelanggan` (
+  `idpelanggan` varchar(9) NOT NULL,
+  `Namapelanggan` varchar(50) NOT NULL,
+  `Jeniskelamin` enum('Laki-Laki','Perempuan') NOT NULL,
+  `Nohp` varchar(15) NOT NULL,
+  `Alamat` varchar(100) NOT NULL,
+  `meja` int(11) NOT NULL,
+  `waktudatang` time DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `pelanggan`
+--
+
+INSERT INTO `pelanggan` (`idpelanggan`, `Namapelanggan`, `Jeniskelamin`, `Nohp`, `Alamat`, `meja`, `waktudatang`) VALUES
+('P001', 'Ferran Torres', 'Laki-Laki', '087756434', 'Jl Suka Suka no 3', 0, '20:52:06');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `pesanan`
+--
+
+CREATE TABLE `pesanan` (
+  `idpesanan` varchar(9) NOT NULL,
+  `idmenu` varchar(9) NOT NULL,
+  `idpelanggan` varchar(9) NOT NULL,
+  `Jumlah` int(11) NOT NULL,
+  `iduser` int(11) NOT NULL,
+  `status` enum('paid','unpaid','','') NOT NULL DEFAULT 'unpaid',
+  `tgl_bayar` time DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `pesanan`
+--
+
+INSERT INTO `pesanan` (`idpesanan`, `idmenu`, `idpelanggan`, `Jumlah`, `iduser`, `status`, `tgl_bayar`) VALUES
+('PS001', 'M001', 'P001', 3, 1, 'paid', '15:11:56');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `transaksi`
+--
+
+CREATE TABLE `transaksi` (
+  `idtransaksi` varchar(9) NOT NULL,
+  `idpesanan` varchar(9) NOT NULL,
+  `Total` int(11) NOT NULL,
+  `Bayar` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `transaksi`
+--
+
+INSERT INTO `transaksi` (`idtransaksi`, `idpesanan`, `Total`, `Bayar`) VALUES
+('TR001', 'PS001', 195000, 200000);
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `user`
+--
+
+CREATE TABLE `user` (
+  `iduser` int(11) NOT NULL,
+  `Namauser` varchar(50) NOT NULL,
+  `username` varchar(30) NOT NULL,
+  `password` varchar(30) NOT NULL,
+  `level` enum('admin','waiter','owner','kasir') NOT NULL DEFAULT 'waiter'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `user`
+--
+
+INSERT INTO `user` (`iduser`, `Namauser`, `username`, `password`, `level`) VALUES
+(1, 'Albert Belerick', 'albert', 'albert01', 'waiter'),
+(2, 'Sakayanagi', 'saka', 'saka02', 'admin'),
+(3, 'Ayakonoji Kimisaki', 'ayako', 'ayako03', 'kasir'),
+(4, 'Horikita Miyamizu', 'horikita', 'horikita04', 'owner'),
+(10, 'Valencia Rose', 'valenc', 'valval', 'admin');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indeks untuk tabel `menu`
+--
+ALTER TABLE `menu`
+  ADD PRIMARY KEY (`idmenu`);
+
+--
+-- Indeks untuk tabel `pelanggan`
+--
+ALTER TABLE `pelanggan`
+  ADD PRIMARY KEY (`idpelanggan`);
+
+--
+-- Indeks untuk tabel `pesanan`
+--
+ALTER TABLE `pesanan`
+  ADD PRIMARY KEY (`idpesanan`),
+  ADD KEY `iduser` (`iduser`),
+  ADD KEY `idpelanggan` (`idpelanggan`),
+  ADD KEY `idmenu` (`idmenu`);
+
+--
+-- Indeks untuk tabel `transaksi`
+--
+ALTER TABLE `transaksi`
+  ADD PRIMARY KEY (`idtransaksi`),
+  ADD KEY `idpesanan` (`idpesanan`);
+
+--
+-- Indeks untuk tabel `user`
+--
+ALTER TABLE `user`
+  ADD PRIMARY KEY (`iduser`);
+
+--
+-- AUTO_INCREMENT untuk tabel yang dibuang
+--
+
+--
+-- AUTO_INCREMENT untuk tabel `user`
+--
+ALTER TABLE `user`
+  MODIFY `iduser` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
+--
+
+--
+-- Ketidakleluasaan untuk tabel `pesanan`
+--
+ALTER TABLE `pesanan`
+  ADD CONSTRAINT `pesanan_ibfk_2` FOREIGN KEY (`idmenu`) REFERENCES `menu` (`idmenu`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `pesanan_ibfk_3` FOREIGN KEY (`idpelanggan`) REFERENCES `pelanggan` (`idpelanggan`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `pesanan_ibfk_4` FOREIGN KEY (`iduser`) REFERENCES `user` (`iduser`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Ketidakleluasaan untuk tabel `transaksi`
+--
+ALTER TABLE `transaksi`
+  ADD CONSTRAINT `transaksi_ibfk_1` FOREIGN KEY (`idpesanan`) REFERENCES `pesanan` (`idpesanan`) ON DELETE CASCADE ON UPDATE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
